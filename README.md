@@ -1,0 +1,2 @@
+# Funhat
+Hardhat code samples 
