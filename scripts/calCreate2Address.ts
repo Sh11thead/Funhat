@@ -12,8 +12,8 @@ async function main() {
             ethers.utils.hexZeroPad(ethers.utils.arrayify(salt), 32),
             keccak256OfCode
         )
-        salt++
         if (computeAddr.toLowerCase().startsWith('0x6666')) console.log(salt, computeAddr)
+        salt++
     }
 }
 
