@@ -32,7 +32,7 @@ contract Create2Deployer {
         uint256 value,
         bytes32 salt,
         bytes memory code
-    ) public {
+    ) public payable {
         Create2.deploy(value, salt, code);
     }
 
@@ -42,19 +42,6 @@ contract Create2Deployer {
      */
     function computeAddress(bytes32 salt, bytes32 codeHash) public view returns (address) {
         return Create2.computeAddress(salt, codeHash);
-    }
-
-    /**
-     * @dev Returns the address where a contract will be stored if deployed via {deploy} from a
-     * contract located at `deployer`. If `deployer` is this contract's address, returns the
-     * same value as {computeAddress}.
-     */
-    function computeAddressWithDeployer(
-        bytes32 salt,
-        bytes32 codeHash,
-        address deployer
-    ) public pure returns (address) {
-        return Create2.computeAddress(salt, codeHash, deployer);
     }
 
 

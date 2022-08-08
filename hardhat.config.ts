@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv'
 
-import { HardhatUserConfig, task } from 'hardhat/config'
+import { task } from 'hardhat/config'
+import { HardhatUserConfig } from 'hardhat/types'
 import '@nomiclabs/hardhat-etherscan'
 import '@nomiclabs/hardhat-waffle'
 import '@typechain/hardhat'
@@ -20,6 +21,15 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
         console.log(account.address)
     }
 })
+
+const deterministicDeploymentConfig = (network: string) => {
+    return {
+        factory: process.env.DETERMINFAC ? process.env.DETERMINFAC : '0xA375A26dbb09F5c57fB54264f393Ad6952d1d2de',
+        deployer: '',
+        funding: '',
+        signedTx: '',
+    }
+}
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -56,6 +66,7 @@ const config: HardhatUserConfig = {
     mocha: {
         timeout: 1000000,
     },
+    deterministicDeployment: process.env.DETERMINFAC ? deterministicDeploymentConfig : undefined,
 }
 
 export default config

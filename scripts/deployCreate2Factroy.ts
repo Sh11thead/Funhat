@@ -3,6 +3,7 @@ import { ethers } from 'hardhat'
 // mint test token usdc
 async function main() {
     const factoryFactory = await ethers.getContractFactory('Create2Deployer')
+
     const factory = await factoryFactory.deploy()
     console.log(factory.address)
 }
