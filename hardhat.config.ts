@@ -22,6 +22,16 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
     }
 })
 
+/* const deterministicDeploymentConfig = (network: string) => {
+    return {
+        factory: '0x5e3a23F59625E21170C0E6e3B6b4305294495d94',
+        deployer: '0x0ECC4a43Be8880c21Db0c7a821a051944F13Bbe5',
+        funding: '10000000000000000',
+        signedTx:
+            '0xf8a68085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf381e5a06122efa0bf79487fc37ddd5f594283d551c2f2cc5caeb3747a893133b54c9b7ea03dc515047a2e7de0c6ccc307ca19cdf6b29791bf8905eee2a908dc43ac3193d6',
+    }
+} */
+
 const deterministicDeploymentConfig = (network: string) => {
     return {
         factory: process.env.DETERMINFAC ? process.env.DETERMINFAC : '0xA375A26dbb09F5c57fB54264f393Ad6952d1d2de',
@@ -70,7 +80,3 @@ const config: HardhatUserConfig = {
 }
 
 export default config
-// curl https://http-testnet.cube.network/ \
-//   -X POST \
-//   -H "Content-Type: application/json" \
-//   --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}'
