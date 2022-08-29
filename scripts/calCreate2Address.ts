@@ -2,7 +2,7 @@
 import { artifacts, ethers } from 'hardhat'
 
 async function main() {
-    const factroyAddr = '0xF193b47F0D08d82e4CCdCbbaFEaA1Aaf4BcF5484'
+    const factroyAddr = '0xAdB7A1db521853BE0E97aEdd43455Fb7d220e8E5'
     const keccak256OfCode = ethers.utils.keccak256(artifacts.readArtifactSync('SampleToken').bytecode)
     let salt = 0
     let computeAddr = '0'
@@ -13,11 +13,11 @@ async function main() {
             ethers.utils.hexZeroPad(ethers.utils.arrayify(salt), 32),
             keccak256OfCode
         )
-        if (computeAddr.toLowerCase().startsWith('0x6666')) {
+        if (computeAddr.toLowerCase().startsWith('0x555')) {
             console.log(salt, computeAddr)
             totalNum++
         }
-        if (totalNum > 10) {
+        if (totalNum > 3) {
             break
         }
         salt++

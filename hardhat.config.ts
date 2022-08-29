@@ -34,7 +34,7 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 
 const deterministicDeploymentConfig = (network: string) => {
     return {
-        factory: process.env.DETERMINFAC ? process.env.DETERMINFAC : '0xA375A26dbb09F5c57fB54264f393Ad6952d1d2de',
+        factory: '0xAdB7A1db521853BE0E97aEdd43455Fb7d220e8E5',
         deployer: '',
         funding: '',
         signedTx: '',
@@ -76,7 +76,10 @@ const config: HardhatUserConfig = {
     mocha: {
         timeout: 1000000,
     },
-    deterministicDeployment: process.env.DETERMINFAC ? deterministicDeploymentConfig : undefined,
+    deterministicDeployment: deterministicDeploymentConfig,
+    typechain: {
+        externalArtifacts: ['node_modules/@openzeppelin/contracts/build/contracts/ERC1155.json'],
+    },
 }
 
 export default config

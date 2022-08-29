@@ -10,7 +10,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     // 1. deploy TestToken
     await deploy('SampleToken', {
         from: deployer,
-        deterministicDeployment: '0x046c7a',
+        deterministicDeployment: '0x0a8e',
         log: true,
     })
 }
