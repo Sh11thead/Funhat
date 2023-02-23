@@ -1,6 +1,6 @@
-import { UniBalancer__factory, UniswapV2Pair__factory } from "../../typechain";
-import { ethers } from "hardhat";
-import { parseLog } from "../utils";
+import { UniBalancer__factory, UniswapV2Pair__factory } from '../../typechain'
+import { ethers } from 'hardhat'
+import { parseLog } from '../utils'
 
 // mint test token usdc
 async function main() {
