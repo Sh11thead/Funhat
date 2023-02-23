@@ -1,16 +1,16 @@
-import * as dotenv from 'dotenv'
+import * as dotenv from "dotenv";
 
-import { task } from 'hardhat/config'
-import { HardhatUserConfig } from 'hardhat/types'
-import '@nomiclabs/hardhat-etherscan'
-import '@nomiclabs/hardhat-waffle'
-import '@typechain/hardhat'
-import '@openzeppelin/hardhat-upgrades'
-import 'hardhat-deploy'
-import 'hardhat-gas-reporter'
-import 'solidity-coverage'
+import { task } from "hardhat/config";
+import { HardhatUserConfig } from "hardhat/types";
+import "@nomiclabs/hardhat-etherscan";
+import "@nomiclabs/hardhat-waffle";
+import "@typechain/hardhat";
+import "@openzeppelin/hardhat-upgrades";
+import "hardhat-deploy";
+import "hardhat-gas-reporter";
+import "solidity-coverage";
 // eslint-disable-next-line camelcase
-import { accounts, node_url } from './network'
+import { accounts, node_url } from "./network";
 
 dotenv.config()
 
@@ -76,6 +76,7 @@ const config: HardhatUserConfig = {
         externalArtifacts: [
             'node_modules/@openzeppelin/contracts/build/contracts/ERC1155.json',
             'node_modules/@uniswap/v2-periphery/build/UniswapV2Router02.json ',
+            'node_modules/@uniswap/v2-core/build/UniswapV2Pair.json ',
             'node_modules/@uniswap/swap-router-contracts/artifacts/contracts/SwapRouter02.sol/SwapRouter02.json',
         ],
     },

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "./library/FullMath.sol";
+import "./library/UniHelper.sol";
 
 
 interface IERC20 {
@@ -40,66 +39,69 @@ interface IUniswapV2Pair {
 
 contract UniBalancer {
 
-    function ROOT4146650865(address token0, address token1, address[] calldata routers) external {
-        (address bossPair, bool[] memory aToB, uint[] memory amountIn) = computeHow(token0, token1, routers);
-        bool rightPair = true;
-        if (uint160(token0) < uint160(token1)) rightPair = false;
+    struct Advise {
+        address deepPair;
+        address swapPair;
+        bool loanFrom0;
+        uint loanAmount;
+        uint exceptOut;
+        uint returnOut;
+    }
 
-        for (uint i = 0; i < aToB.length; i ++) {
-            if (amountIn[i] != 0) {
-                if (aToB[i]) {
-                    //aToB
-                    if (rightPair) {
-                        IUniswapV2Pair(bossPair).swap(
-                            amountIn[i],
-                            0,
-                            address(this),
-                            abi.encode(routers[i], token0, token1, amountIn[i])
-                        );
-                    } else {
-                        IUniswapV2Pair(bossPair).swap(
-                            0,
-                            amountIn[i],
-                            address(this),
-                            abi.encode(routers[i], token0, token1, amountIn[i])
-                        );
-                    }
-
-                } else if (!aToB[i]) {
-                    //bToA
-                    if (rightPair) {
-                        IUniswapV2Pair(bossPair).swap(
-                            0,
-                            amountIn[i],
-                            address(this),
-                            abi.encode(routers[i], token1, token0, amountIn[i])
-                        );
-                    } else {
-                        IUniswapV2Pair(bossPair).swap(
-                            amountIn[i],
-                            0,
-                            address(this),
-                            abi.encode(routers[i], token1, token0, amountIn[i])
-                        );
-                    }
-                }
+    function ROOT4146650865(address token0, address token1, address[] calldata factories) external {
+        for (uint i = 0; i < factories.length - 1; i ++) {
+            address[2] memory inputs;
+            inputs[0] = factories[i];
+            inputs[1] = factories[i + 1];
+            Advise memory advise = computeHow(token0, token1, inputs);
+            if (advise.loanAmount == 0) continue;
+            if (advise.loanFrom0) {
+                IUniswapV2Pair(advise.deepPair).swap(
+                    advise.loanAmount,
+                    0,
+                    address(this),
+                    abi.encode(advise.swapPair, token0, token1, advise.exceptOut, advise.returnOut)
+                );
+            } else {
+                IUniswapV2Pair(advise.deepPair).swap(
+                    0,
+                    advise.loanAmount,
+                    address(this),
+                    abi.encode(advise.swapPair, token1, token0, advise.exceptOut, advise.returnOut)
+                );
             }
+
         }
     }
 
-    function uniswapV2Call(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
-        (address router, address token0, address token1, uint amount) = abi.decode(_data, (address, address, address, uint));
-        address[] memory path = new address[](2);
-        path[0] = token0;
-        path[1] = token1;
 
-        uint256 amountReceived = IUniswapV2Router(targetRouter).swapExactTokensForTokens(
-            amountToken,
-            amountRequired, // we already now what we need at least for payback; get less is a fail; slippage can be done via - ((amountRequired * 19) / 981) + 1,
-            path,
-            address(this), // its a foreign call; from router but we need contract address also equal to "_sender"
-            block.timestamp + 60
-        )[1];
+    function uniswapV2Call(
+        address sender,
+        uint256 amount0,
+        uint256 amount1,
+        bytes calldata data
+    ) external  {
+        require(sender == address (this), 'HMMM');
+        bool loanFrom0 = amount0 > 0;
+        uint256 loan0 = loanFrom0 ? amount0 : amount1;
+
+        (address swapPair, address loanToken, address returnToken, uint256 exceptOut, uint256 returnOut) =
+        abi.decode(data, (address, address, address, uint256, uint256));
+
+        {
+            // IERC20(pullToken).transfer(pairB, x);
+            (bool success, ) = loanToken.call(abi.encodeWithSignature("transfer(address,uint256)", swapPair, loan0));
+            require(success, "erc20 transfer 1 failing");
+        }
+
+        IUniswapV2Pair(swapPair).swap(loanFrom0 ? 0 : exceptOut, loanFrom0 ? exceptOut : 0, address(this), "");
+
+        {
+            // IERC20(remainToken).transfer(pairA, z + 1);
+            (bool success, ) =
+            returnToken.call(abi.encodeWithSignature("transfer(address,uint256)", msg.sender, returnOut + 1));
+            require(success, "erc20 transfer 2 failing");
+        }
     }
 
     function withdraw(address token) external {
@@ -107,58 +109,36 @@ contract UniBalancer {
     }
 
     function computeHow(
-        address token0, address token1, address[] memory routers
-    ) public view returns (address bossPair, bool[] memory aToB, uint[] memory amountIn){
-        address[] memory pairs = new address[](routers.length);
+        address token0, address token1, address[2] memory factories
+    ) public view returns (Advise memory advise){
+        require(uint160(token0) < uint160(token1), 'CM');
+        address[2] memory pairs;
         uint112 bossAmount0;
         uint112 bossAmount1;
-        for (uint i = 0; i < routers.length; i++) {
-            address fac = IUniswapV2Router(routers[i]).factory();
-            pairs[i] = IUniswapV2Factory(fac).getPair(token0, token1);
+        for (uint i = 0; i < 2; i++) {
+            pairs[i] = IUniswapV2Factory(factories[i]).getPair(token0, token1);
             (uint112 reserve0, uint112 reserve1,) = IUniswapV2Pair(pairs[i]).getReserves();
             if (reserve0 > bossAmount0) {
                 bossAmount0 = reserve0;
                 bossAmount1 = reserve1;
-                bossPair = pairs[i];
+                advise.deepPair = pairs[i];
             }
         }
-        // we took 'boss' amount to make trades
-        aToB = new bool[](routers.length);
-        amountIn = new uint[](routers.length);
-
-        for (uint i = 0; i < routers.length; i++) {
+        for (uint i = 0; i < 2; i++) {
+            if (pairs[i] == advise.deepPair) continue;
+            // currentPair != boosPair
+            advise.swapPair = pairs[i];
             (uint112 reserve0, uint112 reserve1,) = IUniswapV2Pair(pairs[i]).getReserves();
-            if (uint160(token0) < uint160(token1)) {
-                (aToB[i], amountIn[i]) = computeUniV2ProfitMaximizingTrade(uint(bossAmount0), uint(bossAmount1), uint(reserve0), uint(reserve1));
+            (advise.loanAmount, advise.exceptOut, advise.returnOut) = UniHelper.cal(reserve0, reserve1, bossAmount0, bossAmount1);
+            if (advise.loanAmount == 0) {
+                advise.loanFrom0 = true;
+                (advise.loanAmount, advise.exceptOut, advise.returnOut) = UniHelper.cal(reserve1, reserve0, bossAmount1, bossAmount0);
             } else {
-                (aToB[i], amountIn[i]) = computeUniV2ProfitMaximizingTrade(uint(bossAmount1), uint(bossAmount0), uint
-                    (reserve1), uint(reserve0));
+                advise.loanFrom0 = false;
             }
         }
+
     }
 
-
-    // computes the direction and magnitude of the profit-maximizing trade
-    function computeUniV2ProfitMaximizingTrade(
-        uint256 truePriceTokenA, uint256 truePriceTokenB, uint256 reserveA, uint256 reserveB
-    ) private pure returns (bool aToB, uint256 amountIn) {
-        aToB = FullMath.mulDiv(reserveA, truePriceTokenB, reserveB) < truePriceTokenA;
-
-        uint256 invariant = reserveA * reserveB;
-
-        uint256 leftSide = Math.sqrt(
-            FullMath.mulDiv(
-                invariant * 1000,
-                aToB ? truePriceTokenA : truePriceTokenB,
-                (aToB ? truePriceTokenB : truePriceTokenA) * 997
-            )
-        );
-        uint256 rightSide = (aToB ? reserveA * (1000) : reserveB * (1000)) / 997;
-
-        if (leftSide < rightSide) return (false, 0);
-
-        // compute the amount that must be sent to move the price to the profit-maximizing price
-        amountIn = leftSide - rightSide;
-    }
 
 }
