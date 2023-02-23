@@ -7,6 +7,10 @@
     "deploy-on-cube-test": "hardhat run scripts/deploy-for-test.ts --network cubeTest",
     "deploy-on-localhost": "hardhat run scripts/deploy-for-test.ts --network localhost"
   },
+  "dependencies": {
+    "@uniswap/swap-router-contracts": "1.3.0",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",

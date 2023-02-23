@@ -1,5 +1,5 @@
 import { artifacts, ethers } from 'hardhat'
-import { Create2Deployer, SampleToken } from '../typechain'
+import { Create2Deployer, SampleToken } from '../../typechain'
 
 // mint test token usdc
 async function main() {
