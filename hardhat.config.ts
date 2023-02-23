@@ -1,16 +1,16 @@
-import * as dotenv from "dotenv";
+import * as dotenv from 'dotenv'
 
-import { task } from "hardhat/config";
-import { HardhatUserConfig } from "hardhat/types";
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
-import "@openzeppelin/hardhat-upgrades";
-import "hardhat-deploy";
-import "hardhat-gas-reporter";
-import "solidity-coverage";
+import { task } from 'hardhat/config'
+import { HardhatUserConfig } from 'hardhat/types'
+import '@nomiclabs/hardhat-etherscan'
+import '@nomiclabs/hardhat-waffle'
+import '@typechain/hardhat'
+import '@openzeppelin/hardhat-upgrades'
+import 'hardhat-deploy'
+import 'hardhat-gas-reporter'
+import 'solidity-coverage'
 // eslint-disable-next-line camelcase
-import { accounts, node_url } from "./network";
+import { accounts, node_url } from './network'
 
 dotenv.config()
 

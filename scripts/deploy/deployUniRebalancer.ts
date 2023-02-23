@@ -1,5 +1,5 @@
-import { UniBalancer__factory } from "../../typechain";
-import { ethers } from "hardhat";
+import { UniBalancer__factory } from '../../typechain'
+import { ethers } from 'hardhat'
 
 // mint test token usdc
 async function main() {
