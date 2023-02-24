@@ -48,6 +48,32 @@ contract UniBalancer {
         uint returnOut;
     }
 
+    // swap any pairs to target price
+    function ROOT4146650864(address token0, address token1, address[] calldata factories, uint tureToken0Amount, uint tureToken1Amount) external {
+        require(uint160(token0) < uint160(token1), 'CM');
+
+        for (uint i = 0; i < factories.length; i ++) {
+            address pair = IUniswapV2Factory(factories[i]).getPair(token0, token1);
+            (uint112 reserve0, uint112 reserve1,) = IUniswapV2Pair(pair).getReserves();
+            (bool _0To1, uint256 amountIn) = UniHelper.computeUniV2ProfitMaximizingTrade(tureToken0Amount,
+                tureToken1Amount, uint(reserve0), uint(reserve1));
+            if (amountIn == 0) continue;
+            if (_0To1) {
+                uint amountOut = UniHelper.calSwap(reserve0, reserve1, amountIn);
+                IERC20(token0).transfer(pair, amountIn);
+                IUniswapV2Pair(pair).swap(0, amountOut, address(this), "");
+            } else {
+                uint amountOut = UniHelper.calSwap(reserve1, reserve0, amountIn);
+                IERC20(token1).transfer(pair, amountIn);
+                IUniswapV2Pair(pair).swap(amountOut, 0, address(this), "");
+            }
+        }
+
+
+    }
+
+
+    // re-balanced tokens between pairs
     function ROOT4146650865(address token0, address token1, address[] calldata factories) external {
         for (uint i = 0; i < factories.length - 1; i ++) {
             address[2] memory inputs;
@@ -80,8 +106,8 @@ contract UniBalancer {
         uint256 amount0,
         uint256 amount1,
         bytes calldata data
-    ) external  {
-        require(sender == address (this), 'HMMM');
+    ) external {
+        require(sender == address(this), 'HMMM');
         bool loanFrom0 = amount0 > 0;
         uint256 loan0 = loanFrom0 ? amount0 : amount1;
 
@@ -90,7 +116,7 @@ contract UniBalancer {
 
         {
             // IERC20(pullToken).transfer(pairB, x);
-            (bool success, ) = loanToken.call(abi.encodeWithSignature("transfer(address,uint256)", swapPair, loan0));
+            (bool success,) = loanToken.call(abi.encodeWithSignature("transfer(address,uint256)", swapPair, loan0));
             require(success, "erc20 transfer 1 failing");
         }
 
@@ -98,7 +124,7 @@ contract UniBalancer {
 
         {
             // IERC20(remainToken).transfer(pairA, z + 1);
-            (bool success, ) =
+            (bool success,) =
             returnToken.call(abi.encodeWithSignature("transfer(address,uint256)", msg.sender, returnOut + 1));
             require(success, "erc20 transfer 2 failing");
         }

@@ -6,7 +6,7 @@ import { parseLog } from '../utils'
 async function main() {
     const signers = await ethers.getSigners()
     const deployer = signers[0]
-    const uniBalancer = await UniBalancer__factory.connect('0xf15b349397a91534c9fc12232c55dd9197559f07', deployer)
+    const uniBalancer = await UniBalancer__factory.connect('0xDD597f90B58889b6dac963587211641DE846f045', deployer)
 
     const goerliUSDC = '0xA375A26dbb09F5c57fB54264f393Ad6952d1d2de'
     const goerliMATIC = '0xbf3b5CF32066650Ea0b28277e621Ee3d0b41905A'

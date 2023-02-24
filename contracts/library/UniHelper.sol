@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
+
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./FullMath.sol";
 
 library UniHelper {
+
+    // given 'input' amount token0, cal how much token1 returned (return1)
+    function calSwap(uint256 reserve0, uint256 reserve1, uint256 input0) internal pure returns (uint return1){
+        return1 = ((input0 * 997 * reserve1)) / (reserve0 * 1000 + input0 * 997);
+    }
 
     function calX(
         uint256 reserve0,
@@ -38,6 +44,9 @@ library UniHelper {
 
     /// @dev this function calculates how many token1 takes to swap 2 pairs to balanced
     ///      usually we loan from 'deep' pair and made swap in 'reserve' pair
+    /// need1 = amount token1 in
+    /// swap0 = amount token0 out
+    /// return0 = amount token1 return
     function cal(
         uint256 reserve0,
         uint256 reserve1,
@@ -73,7 +82,7 @@ library UniHelper {
     // computes the direction and magnitude of the profit-maximizing trade
     function computeUniV2ProfitMaximizingTrade(
         uint256 truePriceTokenA, uint256 truePriceTokenB, uint256 reserveA, uint256 reserveB
-    ) private pure returns (bool aToB, uint256 amountIn) {
+    ) internal pure returns (bool aToB, uint256 amountIn) {
         aToB = FullMath.mulDiv(reserveA, truePriceTokenB, reserveB) < truePriceTokenA;
 
         uint256 invariant = reserveA * reserveB;
